@@ -1,0 +1,304 @@
+1. Control File
+select name from v$controlfile;
+
+2. To check DB FILES
+select file_name from dba_data_files;
+
+3. Mode of database
+select name, open_mode from v$database;
+
+4. Create Common user
+create user C##CDBUSER identified by CDBUSER;
+
+5. Create Local user (PDB)
+create user u1 identified by u1;
+
+6. To check users.
+select username from dba_users where username='U1';
+
+7. grant
+grant create session to u1;
+
+8. change password
+alter user u1 identified by u11;
+
+9. lock/unlock
+alter user u1 account lock/alter user u1 account unlock;
+
+10. expire
+alter user u1 password expire;
+
+11. profile check
+select username, profile from dba_users where username='U1';
+
+12. To give quota for user on a specific tablespace.
+ALTER USER u2 QUOTA UNLIMITED ON users/ALTER USER u2 QUOTA 50M ON users;
+
+13. System level priviledge
+select privilege, grantee from dba_sys_privs where grantee='U1';
+
+14. object level privilege
+select grantee,owner,table_name,privilege from dba_tab_privs where grantee='U2';
+
+15. To check tablespace of user.
+select username, default_tablespace from dba_users where username='U2';
+
+16. To create new TABLESPACE
+CREATE TABLESPACE new_tbs DATAFILE '/data/app/oracle/oradata/PRIM/pdbprim/newtbsfile01.dbf' SIZE 100M AUTOEXTEND ON NEXT 10M MAXSIZE 500M EXTENT MANAGEMENT LOCAL
+SEGMENT SPACE MANAGEMENT AUTO;
+
+17. To Create a User and Assign the Tablespace
+CREATE USER new_user IDENTIFIED BY strong_password DEFAULT TABLESPACE new_tbs TEMPORARY TABLESPACE temp QUOTA UNLIMITED ON new_tbs;
+
+18. To check autoextend on tablespace
+select TABLESPACE_NAME, FILE_NAME,AUTOEXTENSIBLE,MAXBYTES/1024/1024/1024 from dba_Data_files;
+
+19. Add datafile to existing tablespace
+alter tablespace USERS add datafile '/data/app/oracle/oradata/PRIM/pdbprim/users02.dbf' size 10M;
+alter tablespace USERS add datafile '+DATA' size 10m;
+
+20. Resize datafile
+alter database datafile '/data/app/oracle/oradata/PRIM/pdbprim/users01.dbf' resize 10M;
+
+21. Logical directory in sql for datapump
+create directory test_dir as '/data/backup';
+
+22. expdp tables
+expdp tables=u1.t1 directory=test_dir dumpfile=t1.dmp logfile=t1.log
+
+23. impdp tables
+impdp directory=test_dir dumpfile=t1.dmp logfile=t1_imp.log
+
+24. expdp schema
+expdp schemas=u1 directory=test_dir dumpfile=u1.dmp logfile=u1.log
+
+25. Full database backup
+BACKUP DATABASE PLUS ARCHIVELOG INCLUDE CURRENT CONTROLFILE;
+
+26. Incremental backup
+BACKUP INCREMENTAL LEVEL 0 DATABASE;
+BACKUP INCREMENTAL LEVEL 1 DATABASE;
+BACKUP ARCHIVELOG ALL FORMAT '/backup/archivelogs/arch_%d_%T_%s.log';
+BACKUP CURRENT CONTROLFILE FORMAT '/backup/controlfile/ctrl_%d_%T_%s.bkp';
+BACKUP SPFILE FORMAT '/backup/spfile/spfile_%d_%T_%s.bkp';
+BACKUP TABLESPACE users;
+BACKUP DATABASE;
+BACKUP DATAFILE '/u01/oradata/ORCL/users01.dbf', '/u01/oradata/ORCL/system01.dbf';
+BACKUP DATABASE PLUS ARCHIVELOG INCLUDE CURRENT CONTROLFILE FORMAT '/backup/full/full_%d_%T_%s.bkp';
+
+27. Check BACKUP
+crosscheck backup;
+
+28. Delete old backup
+delete expired backup;
+
+29. Delete backup.
+delete backup;
+
+30. check obsolete
+REPORT OBSOLETE;
+
+31. delete obsolete
+DELETE OBSOLETE;
+
+32. To check obsolete policies
+show all;
+CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF 7 DAYS;
+CONFIGURE RETENTION POLICY TO REDUNDANCY 1;
+
+33. To set archive log location & put in archive log mode
+alter system set log_archive_dest_1='location=/data/archive' scope=both;
+shutdown immediate
+startup mount
+alter database archivelog;
+alter database open;
+archive log list;
+
+34. Opatch - Software level
+opatch lsinventory`               
+opatch version`                   
+opatch apply`                     
+opatch rollback -id <patch_number>
+
+35. DATAPATCH - DB level patch
+cd $ORACLE_HOME/OPatch
+nohup ./datapatch &
+
+36. Database Alert Log Location:
+/data/app/oracle/diag/rdbms/prim/trace/alert_prim.log
+
+37. UPGRADATION
+select count(*) from dba_objects where status='INVALID';
+@/home/oracle/PRIM/preupgrade./preupgrade_fixups.sql
+alter system set db_recovery_file_dest_size=10G;
+alter system set db_recovery_file_dest='/u01/app/oracle/fast_recovery_area';
+create restore point pre_upgrade guarantee flashback database;
+select NAME,GUARANTEE_FLASHBACK_DATABASE,TIME from V$restore_point;
+=> To remove invalid object count after the upgrade
+@/u01/app/oracle/product/19.0.0/dbhome_1/rdbms/admin/utlrp.sql
+@/home/oracle/PRIM/preupgrade./postupgrade_fixups.sql
+
+38. ASM
+oracleasm configure -i [configure ASM]
+oracleasm init [load initiate ASM]
+fdisk -l [check disks]
+fdisk /dev/sdb [format disk]
+oracleasm createdisk CRS1 /dev/sdb1 [create disk]
+oracleasm listdisks
+oracleasm scandisks
+
+39. To check standby redo logs on primary
+SELECT group#, type, member FROM v$logfile WHERE type = 'STANDBY' order by group#;
+
+40. To check online redo log file size
+select GROUP#,THREAD#,SEQUENCE#,bytes/1024/1024,MEMBERS,STATUS from v$log;
+
+41. Check DB_NAME & DB_UNIQUE_NAME
+show parameter db_name NAME
+show parameter db_unique_name
+
+42. STANDBY_FILE_MANAGEMENT parameter
+ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
+
+43. Update the fal_server and fal_client(For switch over/ fail over activity)
+alter system set fal_server='stand';
+alter system set fal_client='prim';
+
+44. Check database status
+select status,instance_name,database_role,protection_mode from v$database,v$instance;
+
+45. To start the MRP
+alter database recover managed standby database disconnect from session;
+
+46. Cancel the running MRP
+alter database recover managed standby database cancel;
+
+47. Check Switchover Status on Primary
+SELECT SWITCHOVER_STATUS FROM V$DATABASE;
+
+48. Perform Switchover on Primary (Making PRIMARY as new STANDBY)
+ALTER DATABASE COMMIT TO SWITCHOVER TO STANDBY WITH SESSION SHUTDOWN;
+
+49. Perform Switchover on Standby (Making STANDBY as new PRIMARY)
+ALTER DATABASE COMMIT TO SWITCHOVER TO PRIMARY WITH SESSION SHUTDOWN;
+
+50. PLAN_TABLE_OUTPUT
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY);
+
+51. DB VERSION
+SELECT version FROM v$instance;
+
+52. DB SIZE
+SELECT ROUND(SUM(bytes)/1024/1024/1024,2) AS "Database Size (GB)" FROM dba_data_files;
+
+53. AWR REPORT
+cd /$ORACLE_HOME/rdbms/admin/utlrp
+SQL> @awrrpt.sql
+
+54. Non ASM Parameter file location.
+ls $ORACLE_HOME/dbs/spfileprim.ora
+ls $ORACLE_HOME/dbs/initprim.ora
+
+55. Non ASM Control file location.
+ls /u01/app/oracle/oradata/PRIM/control01.ctl
+
+56. Non ASM Data file location.
+/u01/app/oracle/oradata/PRIM/system01.dbf
+
+57. listener.ora and tnsnames.ora loaction?
+ls $ORACLE_HOME/network/admin/listener.ora
+ls $ORACLE_HOME/network/admin/tnsnames.ora
+
+#RAC
+======
+
+1. QUERY to check number of Voting Disks.
+crsctl query css votedisk
+
+2. Command to replace old voting disk diskgroup with new diskgroup.
+crsctl replace votedisk +VD
+
+3. To check number of nodes.
+olsnodes
+
+4. how to find opatch inventory details of all nodes together?
+opatch lsinventory -ALL_NODES
+
+5. Cluster Verification Utility (CVU)
+cluvfy stage -pre crsinst -n node1,node2,node3
+cluvfy stage -post crsinst -n all
+=============================================================================📌 DBA SCENARIOS ================================================================================
+
+1. BLOCKING SESSION
+---------------------
+SQL> desc lock_test;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ ID                                        NOT NULL NUMBER
+ NAME                                               VARCHAR2(20)
+
+SQL> select * from lock_test;
+
+        ID NAME
+---------- --------------------
+         1 Initial
+
+Now from node 1 update the row and dont hit commit.
+SQL> UPDATE lock_test SET name = 'Locked_by_node1' WHERE id = 1;
+
+1 row updated.
+
+SQL> select * from lock_test;
+
+        ID NAME
+---------- --------------------
+         1 Locked_by_node1
+
+Now from node 2 try to update the same row, it will stuck i.e blocked.
+
+SQL> UPDATE lock_test SET name = 'Waiting_on_node2' WHERE id = 1;
+
+waiting.......................................
+
+Now run the query to check blocking session.
+
+SET LINESIZE 250
+SET PAGESIZE 100
+SET TRIMSPOOL ON
+SET WRAP OFF
+
+COL blocker_user   FORMAT A12
+COL waiter_user    FORMAT A12
+COL event          FORMAT A35
+COL object_name    FORMAT A25
+COL blocker_inst   FORMAT 999
+COL waiter_inst    FORMAT 999
+COL seconds_in_wait FORMAT 999999
+SELECT
+  s1.inst_id AS blocker_inst,
+  s1.sid     AS blocker_sid,
+  s1.serial# AS blocker_serial,
+  s1.username AS blocker_user,
+  s2.inst_id AS waiter_inst,
+  s2.sid     AS waiter_sid,
+  s2.serial# AS waiter_serial,
+  s2.username AS waiter_user,
+  s2.event,
+  s2.seconds_in_wait,
+  o.object_name
+FROM gv$session s1
+JOIN gv$session s2
+  ON s1.sid = s2.blocking_session
+  AND s1.inst_id = s2.blocking_instance
+LEFT JOIN dba_objects o
+  ON s2.row_wait_obj# = o.object_id
+WHERE s1.username IS NOT NULL;
+
+
+SQL> @block
+
+BLOCKER_INST BLOCKER_SID BLOCKER_SERIAL BLOCKER_USER BLOCKER_SQLID WAITER_INST WAITER_SID WAITER_SERIAL WAITER_USER  WAITER_SQLID  EVENT       SECONDS_IN_WAIT OBJECT_NAME
+------------ ----------- -------------- ------------ ------------- ----------- ---------- ------------- ------------ ------------- ----------------------------------- --------------- -------------------------
+           1          44          50901 SYS                                  2         50         19375 SYS          6hwmnd3atqs51 enq: TX - row lock contention             66 LOCK_TEST
+
+ALTER SYSTEM KILL SESSION '44,50901,@1' IMMEDIATE;

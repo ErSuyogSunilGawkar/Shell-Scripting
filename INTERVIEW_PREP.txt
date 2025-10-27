@@ -1,0 +1,222 @@
+Tell me about yourself and your roles and responsibilities as an ORACLE DBA?
+=> Hi my name is SUYOG, I am having 2.1 years of experience and currently I am working with TATA CONSULTANCY SERVICES as an ORACLE DBA.
+
+About my project:- 
+Currently I am working in a banking project, we are a team of 32 people with 3 locations/sites, 20 people are working from PR MUMBAI, and 6 from NR MUMBAI, and 6 people from 
+DR HYDERABAD. On my daily basis I work in client location co-ordinating with the client. For monitoring purpose we have a tool called ORACLE ENTERPRISE MANAGER (OEM) 13c mostly
+we use putty and monitoring scripts, and for ticketing purpose we are using a tool caled service now. There are two types of tickets that we get if any problem occurs to 
+database then automatically a ticket is generated and assigned to our DBA team and we also get the tickets from the application team. On daily basis we get tickets like take 
+backup of schemas or tables where application team is doing some testing. We also have scheduled cron tab jobs for daily backup. Types of backup we take are mainly level 0 full 
+database backup on weekend and sometimes l1 incremental if required and daily we take archive log backups. We also get tickets regarding user management, tablespace related 
+issues, etc and  since we have dataguard environment so i have to check that the standby databases are always in sync with the primary. And we have some servers on RAC environment
+where we have to ensure that all nodes are in proper condition. On quarterly basis we are responsible to apply patches.
+
+🟡🔴 Common Ticket Priorities for Oracle DBAs
+| Priority                                         | Description                                          | Typical Examples                                                                                 | Response Time                 | Resolution Time               |
+| ------------------------------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------- | ----------------------------- |
+| 🔴 **P1 – Critical**                             | Major business impact. Entire service or DB is down. | - Production DB down<br>- Listener failure<br>- Backup failed on all prod DBs<br>- DB corruption | Immediate (within 15-30 mins) | ASAP (within 4 hours or less) |
+| 🟠 **P2 – High**                                 | Serious but not total outage. Business is affected.  | - Slow performance in prod<br>- Tablespace almost full (95%)<br>- Critical job failed            | 1 hour                        | 6–8 hours                     |
+| 🟡 **P3 – Medium**                               | Normal issue with workaround or not urgent           | - User creation<br>- Password reset<br>- Non-prod DB refresh<br>- RMAN backup failed on dev DB   | 4–8 hours                     | 1–2 business days             |
+| 🔵 **P4 – Low**                                  | Minor issue, no real business impact                 | - Request for DB info/statistics<br>- Add privilege to test user<br>- AWR report request         | 1 day                         | 3–5 business days             |
+| ⚪ **P5 – Planning / Informational** *(optional)*| No immediate action needed                           | - Info-only tickets<br>- Documentation updates<br>- Change record reminders                      | Scheduled                     | As per plan/schedule          |
+
+
+
+1.) What is oracle database?
+=> Oracle database is a relational database. Used for storing, managing and retieving structured data supporting features like high availability, scalability, longer support.
+
+2) What is oracle instance?
+=> An oracle instance is the combination of the memory(SGA) and background process that manage database operations. When DB is started the instance allows users to access 
+   and manipulate data.
+   
+3) What happen if the alert log is deleted?
+=> If alert log is deleted, oracle will create a new alert log for the upcoming alert messages. But the oldalert log data won't be recovered unless it was backedup.
+
+4) what type of backup strategy does your organization follow?
+=> we use RMAN backup strategy, we take daily full database backups and archivlog backups. And sometimes incremental if required.
+
+5) What is difference between Hot Backup and Cold Backup?
+=> In Hot backup the database is up and running also known as inconsistent backup wheere we can use RMAN or os level copy.
+   In Cold backup the database is down also known as consistent backup and we can go to the archive log and datafile destination and copy them manually with os level cp command.
+
+6) What are the prerequisites for RMAN backup?
+=> a) Database must be in ARCHIVELOG mode for RMAN backups.
+   b) Sufficient space for backup pieces and logs, etc.
+   
+7) What is the main use of FRA?
+=> FRA is centralized storage location for storing backup and recovery related files, such as archive logs, control file backups, RMAN backups etc.
+
+8) What is main purpose of spfile and pfile?
+=> Pfile is a normal text file used to start the database manually if SPfile is missing. 
+   SPfile is a binary file that supports dynamic changes and prefered for production use. Both store initialization parameters for the database instance.
+   If the database is running with SPfile then we can change some parameters dynamically no need to shut down database. But if we start the DB with Pfile and any parameters are
+   changed then we need to restart the DB.
+   
+9) What is the purpose of checkpoint background process?
+=> The checkpoint process updates the control file and database headers with the SCN (latest checkpoint information.) If the SCN is not matched then it co-ordinates with the DBWR
+   to write all the dirty blocks to the datafiles.
+   
+10) Explain different protection modes in dataguard?
+=> Oracle Data Guard supports three protection modes:
+
+   a) Maximum performance(default) [Async mode]:- Primary DB doesnt wait for any confirmation from standby DB commits the transaction at primary end and moves to next transaction.
+   b) Maximum availability [Sync mode]:- Primary DB waits for confirmation from the standby after data receival, if no confirmation then the primary DB converts itself 
+										 in maximum protection mode.
+   c) Maximum protection [Sync mode]:- Primary DB waits for confirmation from the standby after data receival, if no confirmation then the primary DB kills itself.
+ 
+11) What types of the dataguard setup?
+=> a) Physical Standby:- Will have redo apply creates exact copy of primary, structure will be same. Allows read only access with active dataguard.
+   b) Logical Standby:- Will have sql apply, structure will be different. Allows read/write access.
+   c) Snapshot standby:- Physical standby temporarily converted to read/write mode for testing; changes are reverted back when converted back to physical standby.
+   
+12) What is the asm power limit parameter?
+=> It states that how fast the rebalancing can happen. Default value = 0, ranges from (0-1024).
+
+13) How to add datafile in any ASM diskgroup? 
+=> Alter tablespace users add datafile '+DATA' size 1G AUTOEXTEND ON;
+
+14) What to do if huge gap of archives between primary and stanby?
+=> If huge Gap: Take incremental backup on primary stop MRP on standby, move the incremental backup to standby and then recover and restore the backup on standby. Now since the
+   standby is in sync we can start the MRP on standby again.
+   If less Gap: Manualy we can copy files from primary to standby.
+   
+15) What are the steps for patching?
+=> a) Compare our Oraclehome/opatch version and the CPU patch version if version not compatible with new patch then update it.
+   b) Check for any conflict of patches (Overlaps with an existing patch already applied if present then rollback it opatch rollback -id <patch_number>).
+   c) Check for any invalid object count (if not then fix with $ORACLE_HOME/rdbms/admin/@utlrp.sql)
+   d) Check whether we have sufficient space to apply new patch.
+   e) Stop DB and Listener.
+   f) Download from oracle and upload on your folder and apply the patch using opatch apply.
+   
+16) How do you monitor and optimize database performance in Oracle?
+=> I use various tools like the Oracle Enterprise Manager, Shell script, Cron Jobs, df -kh, AWR reports etc. We can analyze SQL execution plans, optimize queries and tune 
+   database parameters to enhance performance.
+   
+17) What is RMAN how do you use it?
+=> RMAN is the utility of oracle database which is used to take backup and recover the database. RMAN target /
+
+18) Explain oracle database authentication methods?
+=> Password authentication, SSL/TLS- based authentication, LDAP, Active directory, etc.
+
+19) Tell difference between cumulative backup and differential backup?
+=> In Differential it backsup since the last level 0 or level 1 incremental backup. Size is less.
+   In Cumulative it backsup since last level 0 icremental backup until the next level 0 is planned, Size is more.
+   
+20) Describe a challenging issue you faced as a DBA and how you resolved it?
+=> In my previous role, we encountered a sudden database performance degaradation issue. After investigation, We found that two SQL queries of specific modules was causing 
+   excessive resource consumption and blocking sessions. We asked the application team and mailed them to stop that query if possible. Our senior team used oracle tuning advisor
+   amd made the necessary changes to the query and indexing. This improved the performance significantly and later our team closely monitored the query's impact afterward.
+   
+21) What is redo log?
+=> The redo log records all the transactions, changes made to database ensuring data integrity and recoverability.
+
+22) Explain the steps to recover a database?
+=> Restore the database with the full backup we have.
+   Apply incremental backups if we have.
+   Recover database i.e Apply archived redo logs.
+   Open database with the RESETLOGS option to reset the redo log sequence.
+   
+23) Explain deadlock and how to resolve it?
+=> A deadlock occurs when two or more transactions are blocked waiting for each other to release a resource. To resolve this oracle automatically detects a deadlock and resolves
+   it by rolling back one of the sql statements involved in the deadlock. We will check the alert log and after that we check the trace file analyze the issue and further share
+   trace log to the development team and share our suggestions on that.
+   
+24) What is datapump compression?
+=> Datapump compression reduces the size of the export dump file by compressing the data being exported.
+   COMMAND :- expdp u1/u1@prim tables=u1.d1 directory=dir1 dumpfile=d1.dmp logfile=d1.log compression=ALL;
+   
+25) How to perform full database export using Oracle datapump?
+=> We can use the FULL parameter without specifying any schema.
+   COMMAND :- expdp u1/u1@prim directory=dir1 dumpfile=dump.dmp logfile=full_export.log FULL=YES
+   
+26) How do you monitor and manage datapump jobs?
+=>  Datapump jobs can be monitored and managed using various views such as dba_datapump_jobs, user_datapump_jobs, V$session_longops.
+
+27) What is the use of ASM and why prefered over file system?
+=> ASM provides striping and mirroring. Rebalancing of data in all disks. ASM simplifies and optimizes the storage of Oracle database files (like datafiles, control files, 
+   redo logs) by managing them across multiple disks.
+
+28) How to find out the databases, which are using the ASM instance?
+=> ASMCMD [+] > lsct
+   SQL> select DB_NAME from V$ASM_CLIENT;
+   
+#RAC
+======
+
+1) What is Oracle RAC?
+=> Oracle RAC (Real Application Clusters) is a database clustering solution that allows multiple instances to access a single database simultaneously, providing high availability, 
+scalability, and load balancing.
+
+2) What are the key benefits of using Oracle RAC?
+=> High Availability: Ensures database availability in case of node failures.
+   Scalability: Allows adding more nodes to handle increased workload.
+   Load Balancing: Distributes user connections across multiple nodes for better performance.
+   Failover Support: In case one node fails, the workload is transferred to another node.
+   
+3) What are the components of an Oracle RAC architecture? 
+=> Cluster Nodes: Physical or virtual servers running Oracle RAC instances.
+   Shared Storage: Storage that all RAC nodes access (e.g., ASM, SAN, NAS).
+   Oracle Clusterware: Manages cluster resources and node communication.
+   Private Interconnect: High-speed network for RAC instances to communicate.
+   Voting Disk: Stores information about node membership in the cluster.
+   OCR (Oracle Cluster Registry): Stores cluster configuration details.
+   
+4) What is Oracle Clusterware?
+=> Oracle Clusterware is Oracle’s cluster management software that coordinates RAC instances, provides high availability, and ensures communication between nodes.
+
+5) If I have a 8-node RAC, then how many scan listeners are required?​
+=> For an 8-node Real Application Clusters (RAC), you typically need three Scan Listeners.It is not mandatory for scan listener to run on all the nodes.
+
+6) What is the role of SCAN (Single Client Access Name) in RAC?
+=> SCAN provides a single access point for client connections to the RAC database, simplifying connection management and load balancing.
+
+7) What is the importance of a Private Interconnect in RAC?
+=> The private interconnect is used for internode communication, cache fusion, and data synchronization.
+
+8) How SCAN knows which node has least load?​
+=> With the help of load balancing advisor which works on load balanacing algorithims.
+
+9) What is Cache Fusion in Oracle RAC?
+=> Cache Fusion is Oracle RAC’s mechanism to share data between instances via private interconnect, ensuring consistency across nodes without disk I/O.
+
+10) What is the function of Voting Disk in Oracle RAC?
+=> The Voting Disk helps in cluster membership decisions, ensuring that only the healthy nodes remain in the cluster.
+
+11) What happens if a node fails in an Oracle RAC environment?
+=> The failed node is evicted from the cluster.
+ Oracle Clusterware redistributes connections to other available nodes.
+ Instance recovery is performed by the surviving nodes.
+ 
+12) What is the difference between normal views and RAC views?
+=> A RAC view has the prefix ‘G’. For example, GV$SESSION instead of V$SESSION
+
+13) How many instances can one rack database have?
+=> One rack database can have up to 100 instance.
+
+14) How does Load Balancing work in Oracle RAC?
+=> Oracle RAC provides two types of load balancing:
+   Client-side Load Balancing: Clients distribute connections across nodes based on SCAN.
+   Server-side Load Balancing: The database directs connections based on workload and performance metrics.
+   
+15) What are rolling patches and how to apply in RAC?
+=> Rolling patches in RAC (Real Application Clusters) allow patching one node at a time while keeping the database available, minimizing downtime. To apply a rolling patch,
+   first, download the patch and ensure prerequisites are met. Then, use opatchauto or opatch to apply the patch on one node while other nodes continue running. After patching
+   the first node, restart and verify it before proceeding to the next node sequentially. Once all nodes are patched, perform post-patch validation and testing to ensure 
+   database stability.
+   
+16) What is the use of OLR file?
+=> It’s a small local file stored on every RAC node. It has basic info like: Where ASM is installed, How to start ASM, Network info, etc. Using OLR, Oracle can start ASM and
+   basic cluster services.
+   
+17) In RAC how ccan you flush shared pool and bufder cacne of all nodes in one command?
+=> alter system flush buffer_cache global;
+   alter system flush shared_pool global;
+   
+18) How to check whether all nodes in cluster are up and running?
+=> crsctl check cluster -all
+
+19) How to know whether it is single database or cluster db?
+=> select name, value from v$parameter where name='cluster_database'; => if True then cluster db.
+
+20) How many alert logs exist in a RAC environment?
+=> One for each instance.
