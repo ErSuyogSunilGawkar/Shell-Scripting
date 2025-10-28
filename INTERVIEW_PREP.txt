@@ -140,6 +140,50 @@ where we have to ensure that all nodes are in proper condition. On quarterly bas
 => ASMCMD [+] > lsct
    SQL> select DB_NAME from V$ASM_CLIENT;
    
+29) Do you know something about Performance Tuning? What all activity you perform for enhancing database performance or resolve performance glitch? 
+=> Yes, I have basic understanding of database performance tuning concepts, although in my current firm, L3 and Oracle support teams handle deep performance tuning. As part of my
+   role, I perform basic checks and first-level tuning activities whenever we observe performance degradation or receive alerts. Which include downloading the AWR analysing with
+   seniors, Monitoring wait events and session activity, Checking tablespace Gathering statistics, Checking SQL execution plans etc.
+   
+30) What does MRP do?
+=> The MRP process continuously applies archived redo logs (received from the primary database) to the standby database to keep it synchronized with the primary.
+
+31) Tell me the steps to create standby database? 
+=> There are two methods to create standby:
+	1️. Using RMAN backup – we take backup, ALTER DATABASE CREATE STANDBY CONTROLFILE AS '/tmp/standby.ctl'(on primary), copy backup + /tmp/standby.ctl to standby, 
+	on standby: RESTORE CONTROLFILE FROM '/tmp/standby.ctl', CATALOG START WITH '/backup/', ALTER DATABASE MOUNT, restore & recover manually, start MRP.
+	2️. Using Active Duplicate – we connect to both databases through network and run
+		rman TARGET sys/oracle@prim AUXILIARY sys/oracle@stand (on stand)
+		DUPLICATE TARGET DATABASE FOR STANDBY FROM ACTIVE DATABASE DORECOVER;
+	It’s faster and doesn’t need a backup copy.
+   
+32) What is the difference between physical and logical standby DB? 
+=> Physical standby applies redo blocks (exact copy),
+   Logical standby applies redo as SQL (can be customized).  
+   
+33) How many standby db we can create from single primary DB? 
+=> From a single primary database, Oracle supports up to 30 standby databases
+   
+34) Do you know Shell Scripting? Did you place any script yet? Explain.
+=> Yes, I have good knowledge of shell scripting.
+   I’ve created and scheduled scripts for database monitoring, backup checks, archive log cleanup, and alert log monitoring.
+   For example, I wrote a script to check archive log usage — if it crosses 80%, it sends an email alert.
+   I usually schedule such scripts in crontab for regular automation.
+ 
+35) Tell me about Crash Recovery & Media Recovery?
+=> ⚙️ Crash Recovery
+
+	Happens automatically when the database or instance crashes but datafiles are intact.
+	Oracle uses online redo logs to roll forward committed transactions and roll back uncommitted ones.
+	It’s handled automatically by SMON during instance startup.
+   
+   💾 Media Recovery
+
+	Happens when a datafile or control file is lost or corrupted (i.e., physical media failure).
+	We use archived redo logs and backups to restore and recover the database.
+	It’s performed manually using RMAN or SQL commands.
+   
+   
 #RAC
 ======
 
