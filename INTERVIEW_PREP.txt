@@ -6,10 +6,11 @@ Currently I am working in a banking project, we are a team of 32 people with 3 l
 DR HYDERABAD. On my daily basis I work in client location co-ordinating with the client. For monitoring purpose we have a tool called ORACLE ENTERPRISE MANAGER (OEM) 13c mostly
 we use putty and monitoring scripts, and for ticketing purpose we are using a tool caled service now. There are two types of tickets that we get if any problem occurs to 
 database then automatically a ticket is generated and assigned to our DBA team and we also get the tickets from the application team. On daily basis we get tickets like take 
-backup of schemas or tables where application team is doing some testing. We also have scheduled cron tab jobs for daily backup. Types of backup we take are mainly level 0 full 
-database backup on weekend and sometimes l1 incremental if required and daily we take archive log backups. We also get tickets regarding user management, tablespace related 
-issues, etc and  since we have dataguard environment so i have to check that the standby databases are always in sync with the primary. And we have some servers on RAC environment
-where we have to ensure that all nodes are in proper condition. On quarterly basis we are responsible to apply patches.
+backup of schemas or tables where application team is doing some testing. We also have scheduled cron tab jobs for daily backup. Types of backup we take are for critical databases 
+mainly we take level 0 full database backup(runs on midnight) and daily we take archive log backups and also differential backups every 6 hours and for other databases we take 
+weekly full database backups(sunday) and differential backup every day and archive log backups on SAN serverand later load them on TAPE. We also get tickets regarding user
+management, tablespace related issues, etc and  since we have dataguard environment so i have to check that the standby databases are always in sync with the primary. And we 
+have some servers on RAC environment where we have to ensure that all nodes are in proper condition. On quarterly basis we are responsible to apply patches.
 
 🟡🔴 Common Ticket Priorities for Oracle DBAs
 | Priority                                         | Description                                          | Typical Examples                                                                                 | Response Time                 | Resolution Time               |
@@ -182,6 +183,7 @@ where we have to ensure that all nodes are in proper condition. On quarterly bas
 	Happens when a datafile or control file is lost or corrupted (i.e., physical media failure).
 	We use archived redo logs and backups to restore and recover the database.
 	It’s performed manually using RMAN or SQL commands.
+
    
    
 #RAC

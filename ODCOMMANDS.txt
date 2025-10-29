@@ -192,7 +192,7 @@ SELECT version FROM v$instance;
 SELECT ROUND(SUM(bytes)/1024/1024/1024,2) AS "Database Size (GB)" FROM dba_data_files;
 
 53. AWR REPORT
-cd /$ORACLE_HOME/rdbms/admin/utlrp
+cd /$ORACLE_HOME/rdbms/admin/
 SQL> @awrrpt.sql
 
 54. Non ASM Parameter file location.
