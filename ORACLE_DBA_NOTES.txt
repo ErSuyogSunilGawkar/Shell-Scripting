@@ -54,8 +54,9 @@
 	>✅DB Buffer Cache
 	----------------
 	It is temporary memory, whenever a query is fired the optimizer will first look for the output in the temporary memory i.e DB Buffer Cache if not then it will look into
-	the DB Data Files fetch the data & copy it inside DB Buffer Cache with help of background process and then show to user(not directly). But after sometime the DB Buffer Cache gets 
-	full, so now oracle follows an algorithm called as LRU(List Recently Used) to remove the data present in DB Buffer Cache which is present from long time & not used frequently.
+	the DB Data Files fetch the data & copy it inside DB Buffer Cache with help of background process and then show to user(not directly). But after sometime the DB Buffer Cache
+	gets full, so now oracle follows an algorithm called as LRU(List Recently Used) to remove the data present in DB Buffer Cache which is present from long time & not used 
+	frequently.
 	
 	
 	>✅Redo Log Buffer
@@ -368,7 +369,7 @@ ______________________________________________________________________________�
 
 📌MULTITENANT ARCHITECTURE
 
-Itis also known as CDB & PDB Architecture, introduced since 12c and compulsory from 21c.
+It is also known as CDB & PDB Architecture, introduced since 12c and compulsory from 21c.
 Non CDB's don't have containers inside them, need to install another 19c or any version if two DB's are required.
 
 Inside our DB "PRIM" there is a container called CDB(Container Database) known as "CDB$ROOT". Now inside this container there are Pluggable DB's known as PDB(Pluggable Database).
@@ -557,13 +558,14 @@ There are two types of user in container DB's.
 	Password changed
 
 
-++++📌Tablespace++++
+++++✅ Tablespace++++
 -------------------
 Whenever a user is created we need to assign him 2 tablespaces.
 
 	1)Default -"USERS" Tablespace is created by default while installing DB.         
 	2)Temporary - "TEMP" Tablespace is created by default while installing DB.
 
+CREATE USER myuser IDENTIFIED BY MyPassword123 DEFAULT TABLESPACE users TEMPORARY TABLESPACE temp PROFILE app_profile QUOTA 500M ON users;
 
 
 
