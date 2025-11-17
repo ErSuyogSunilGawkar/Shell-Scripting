@@ -302,3 +302,187 @@ BLOCKER_INST BLOCKER_SID BLOCKER_SERIAL BLOCKER_USER BLOCKER_SQLID WAITER_INST W
            1          44          50901 SYS                                  2         50         19375 SYS          6hwmnd3atqs51 enq: TX - row lock contention             66 LOCK_TEST
 
 ALTER SYSTEM KILL SESSION '44,50901,@1' IMMEDIATE;
+
+
+2) You discover that a datafile is missing from the file system. How will you recover it while the database is up and running?
+
+=> If a datafile is missing while the database is open, that tablespace becomes offline automatically.
+
+🔹 Identify the missing file:
+	SELECT file#, name FROM v$datafile WHERE status='RECOVER';
+
+🔹 Take the datafile offline:
+	ALTER DATABASE DATAFILE '<path>' OFFLINE;
+
+🔹 Restore the missing datafile from backup:
+	RMAN> RESTORE DATAFILE '<path>';
+
+🔹 Recover it:
+	RMAN> RECOVER DATAFILE '<path>';
+
+🔹 Bring it online:
+	ALTER DATABASE DATAFILE '<path>' ONLINE;
+
+
+3) Your RMAN backup failed last night. How do you find the reason and ensure the next backup completes successfully?
+=>
+🔹 Check RMAN logs:
+	Review the RMAN output/log file from the scheduled job (via OEM, cron, or shell).
+	Look for ORA- or RMAN- errors (e.g., ORA-19504, RMAN-03009).
+
+🔹 Check alert log:
+	tail -50 alert_<SID>.log
+
+🔹 Query RMAN catalog/controlfile for failures:
+	RMAN> LIST FAILURE;  
+	RMAN> REPORT OBSOLETE; 
+
+🔹 Common causes:
+	Archive destination full
+	FRA full
+	Channel allocation issues
+	Missing backup destination permissions
+
+🔹 Fix and validate:
+	Free up space / increase FRA size
+	
+🔹 Test backup manually
+	RMAN> BACKUP DATABASE PLUS ARCHIVELOG;
+	Check log and confirm completion.
+	RMAN> VALIDATE DATABASE;
+	
+	
+4) A user accidentally dropped a critical table. How do you recover it without restoring the entire database?
+=> If Flashback is enabled, you can recover it quickly without restoring the whole database.
+
+🔹Check if Flashback is enabled:
+	SELECT FLASHBACK_ON FROM v$database;
+
+🔹Find the drop time:
+	SELECT original_name, droptime FROM recyclebin WHERE original_name='TABLE_NAME';
+
+🔹Recover the table from Recycle Bin:
+	FLASHBACK TABLE table_name TO BEFORE DROP;
+
+
+5) Archive log destination is full and database hangs — what steps do you take?
+=> When the archive log destination is full, the database can hang because it can’t archive new redo logs.
+
+🔹Check archive destination:
+	SHOW PARAMETER log_archive_dest;
+
+🔹Free up space or move old archives:
+	Delete/move old archives to backup location:
+	RMAN> DELETE ARCHIVELOG ALL COMPLETED BEFORE 'SYSDATE-2';
+
+🔹If urgent (DB hang):
+	Temporarily change archive destination:
+	ALTER SYSTEM SET log_archive_dest_1='LOCATION=/newpath' SCOPE=BOTH;
+
+🔹Resume database activity:
+	Once space is available or destination changed, the archiver (ARCn) will continue writing, and DB will unhang automatically.
+
+
+6) How will you perform a point-in-time recovery for a single tablespace using RMAN?
+=> To recover one tablespace to an earlier point without affecting the rest of the DB, use RMAN TSPITR (Tablespace Point-In-Time Recovery).
+🔹Identify tablespace & SCN/time:
+
+	SELECT tablespace_name FROM dba_tables WHERE table_name='TABLE_NAME';
+
+🔹Start RMAN and connect to target DB:
+
+	rman target /
+	
+🔹Run TSPITR command:
+
+	RECOVER TABLESPACE users
+	UNTIL TIME "TO_DATE('2025-11-10 10:00:00','YYYY-MM-DD HH24:MI:SS')"
+	AUXILIARY DESTINATION '/u01/aux_dest';
+
+🔹RMAN creates an auxiliary instance automatically, restores datafiles for that tablespace from backup, applies redo till that time, and replaces the 
+  recovered datafiles in the main DB.
+
+🔹Bring the tablespace online:
+
+	ALTER TABLESPACE users ONLINE;
+
+
+7) A query that was running fast yesterday is now taking hours. What steps do you follow to diagnose and fix it?
+=> When a query suddenly becomes slow, I follow these steps:
+🔹 Get the SQL ID and check execution plan
+🔹 Check for missing or unusable indexes
+🔹 Check wait events (what the query is waiting on)
+🔹 Check bind variable peeking / histogram issues
+🔹 Fix based on root cause
+🔹 Monitor after fix
+
+8) CPU usage is 100% on the DB server — how do you find which SQL or session is responsible?
+=> When CPU reaches 100%, I first identify the top CPU-consuming sessions using v$session, v$process, and v$sesstat views. Then I check the associated SQL ID 
+in v$sql to find which SQL statement is causing the spike. I verify if the issue is due to a bad execution plan, missing indexes, or sudden data growth. Based 
+on the findings, I either tune the SQL, gather fresh statistics, or terminate the problematic session to stabilize the system.
+
+9) Your primary database has gone down — how will you bring the standby database online as primary (Data Guard failover)?
+=> When primary is down, I check the standby status, stop managed recovery, and run ALTER DATABASE FAILOVER TO <standby>.
+   Then I open the standby as the new primary.
+   If flashback is enabled, I can convert the old primary back to standby to restore Data Guard configuration.
+   
+10) Explain the steps to clone a production database to a test environment using RMAN.
+=> To clone Prod to Test using RMAN, I take a full backup including archivelogs, transfer it to the Test server, restore the controlfile, mount the DB, catalog
+   backups, then run RESTORE and RECOVER DATABASE. Finally, I open with RESETLOGS and optionally use NID to rename the DB.
+   
+
+[oracle@node1 ~]$ oerr ora 3113
+03113, 00000, "end-of-file on communication channel"
+// *Cause: The connection between Client and Server process was broken.
+// *Action: There was a communication error that requires further investigation.
+//          First, check for network problems and review the SQL*Net setup.
+//          Also, look in the alert.log file for any errors. Finally, test to
+//          see whether the server process is dead and whether a trace file
+//          was generated at failure time.
+
+
+[oracle@node1 ~]$ oerr ora 01555
+01555, 00000, "snapshot too old: rollback segment number %s with name \"%s\" too small"
+// *Cause: rollback records needed by a reader for consistent read are
+//         overwritten by other writers
+// *Action: If in Automatic Undo Management mode, increase undo_retention
+//          setting. Otherwise, use larger rollback segments
+
+
+[oracle@node1 ~]$ oerr ora 29740
+29740, 00000, "evicted by instance number %s, group incarnation %s"
+// *Cause: This instance was evicted from the group by another instance of the
+//         cluster database group for one of several reasons, which may
+//         include a communications error in the cluster and failure to issue
+//         a heartbeat to the control file.
+// *Action: Check the trace files of other active instances in the cluster
+//          group for indications of errors that caused a reconfiguration.
+
+
+[oracle@node1 ~]$ oerr ora 01034
+01034, 00000, "ORACLE not available"
+// *Cause: Oracle was not started up. Possible causes include the following:
+//         - The SGA requires more space than was allocated for it.
+//         - The operating-system variable pointing to the instance is
+//           improperly defined.
+// *Action: Refer to accompanying messages for possible causes and correct
+//          the problem mentioned in the other messages.
+//          If Oracle has been initialized, then on some operating systems,
+//          verify that Oracle was linked correctly. See the platform
+//          specific Oracle documentation.
+
+
+[oracle@node1 ~]$ oerr ora 01653
+01653, 00000, "unable to extend table %s.%s by %s in tablespace %s"
+// *Cause:  Failed to allocate an extent of the required number of blocks for
+//          a table segment in the tablespace indicated.
+// *Action: Use ALTER TABLESPACE ADD DATAFILE statement to add one or more
+//          files to the tablespace indicated.
+
+
+[oracle@node1 ~]$ oerr ora 01555
+01555, 00000, "snapshot too old: rollback segment number %s with name \"%s\" too small"
+// *Cause: rollback records needed by a reader for consistent read are
+//         overwritten by other writers
+// *Action: If in Automatic Undo Management mode, increase undo_retention
+//          setting. Otherwise, use larger rollback segments
