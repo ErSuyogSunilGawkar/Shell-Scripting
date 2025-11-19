@@ -1,3 +1,4 @@
+
 Tell me about yourself and your roles and responsibilities as an ORACLE DBA?
 => Hi my name is SUYOG, I am having 2.1 years of experience and currently I am working with TATA CONSULTANCY SERVICES as an ORACLE DBA.
 
@@ -184,7 +185,37 @@ have RAC environment where we have to ensure that all nodes are in proper condit
 	We use archived redo logs and backups to restore and recover the database.
 	It’s performed manually using RMAN or SQL commands.
 
-   
+✅ What is BCP in RMAN?
+
+BCP = Block Change Percentage
+It indicates what percentage of blocks actually changed in a datafile between backups.
+Think of BCP = how much part of a datafile changed since last backup.
+If only 2% of the blocks changed, RMAN will back up only that changed 2% (for incremental backup).
+
+Example : Your table datafile size = 100 GB
+Day 1:
+
+You take a Level 0 backup.
+On Day 2, only 5 GB worth of data changed in that file.
+
+Now RMAN will show something like:
+file 5: BCP = 5%
+
+Why?
+Because 5 GB out of 100 GB = 5% blocks changed.
+So Day 2 incremental backup size will be ~5 GB only, not the full 100 GB.
+
+✅Control File Retention Policy – Oracle
+
+Oracle maintains RMAN backup metadata and archivelog history inside the control file.
+The parameter that controls how long this history is kept is:
+Default is 7 days.
+Oracle purges old records automatically only when space is needed in the control file.
+SHOW PARAMETER control_file_record_keep_time;
+Set retention to 30 days: ==> ALTER SYSTEM SET control_file_record_keep_time = 30 SCOPE=BOTH;
+
+Upgradation
+Types of Indexes
    
 #RAC
 ======
