@@ -83,4 +83,69 @@ Begin
     commit;
 End;
 /
-----------------------------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------Using %Type and %Rowtype inside PLSQL Block DDL as well-----------------------------------------------------------
+create table cust 
+(
+    cust_id number(10) primary key,
+    cust_name varchar2(40),
+    dob date,
+    mobile_n number(10),
+    city varchar2(20)
+    );
+    
+insert into cust (cust_id,cust_name,dob,mobile_n,city) values (1001, 'Arun', to_date('12/09/1985', 'mm/dd/yyyy'), 9090909090, 'Chennai');
+insert into cust (cust_id,cust_name,dob,mobile_n,city) values (1002, 'John', to_date('01/09/1987', 'mm/dd/yyyy'), 9090909091, 'Pune');
+insert into cust (cust_id,cust_name,dob,mobile_n,city) values (1003, 'Babu', to_date('06/23/1995', 'mm/dd/yyyy'), 9090909092, 'Hyderabad');
+commit;
+select * from cust;
+---==============================================================================
+set serveroutput on;
+Declare
+    var_mob_no number(10);
+Begin
+    select mobile_n into var_mob_no from cust where cust_id=1002;
+    dbms_output.put_line('The mobile number is '|| var_mob_no);
+End;
+/
+---==============================================================================
+----Now we have to change the datatype of mobile_n from number to varchar2
+
+alter table cust modify mobile_n varchar(20);
+ORA-01439: column to be modified must be empty to change datatype
+
+---So  Step 1: Add new VARCHAR2 column
+alter table cust add mobile_new varchar(20);
+---Step 2: Copy data (implicit conversion by Oracle)
+update cust set mobile_new=mobile_n;
+---Step 3: Drop the old NUMBER column
+alter table cust drop column mobile_n;
+---Step 4: Add '+91-" in front of all numbers.
+update cust set mobile_new = '+91-'||mobile_new;
+---Step 5: Rename new column to old column
+alter table cust rename column mobile_new to mobile_n;
+commit;
+
+---But Now if try to run the Our PLSQL code again it will give error because our datatype inside our code is number but new type is varchar2.
+---ORA-06502: PL/SQL: numeric or value error: character to number conversion error
+---So we can use the %Type and %Rowtype so no need to mention the datatype to the variable for select it will directly refer the datatype from the table itself.
+
+set serveroutput on;
+Declare
+var_mob_no cust.mobile_n%type;           ---For one specific coloumn use tablename.columnname%type so no matter how many times we change the datatype of column.
+Begin
+select mobile_n into var_mob_no from cust where cust_id=1002;
+dbms_output.put_line('The mobile no is '||var_mob_no);
+End;
+/
+
+set serveroutput on;
+Declare
+var_all_columns cust%rowtype; --One common variable to store all table data.
+Begin
+select * into var_all_columns from cust where cust_id=1002;     ---For more than one columns use tablename.%rowtype
+dbms_output.put_line('The customer name is '||var_all_columns.cust_name);
+dbms_output.put_line('The customer dob is '||var_all_columns.dob);
+End;
+/
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
