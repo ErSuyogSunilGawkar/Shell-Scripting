@@ -1,1 +1,86 @@
+/* Two Types of Blocks in PLSQL
+1. Anonymous Block
+DECLARE
+BEGIN
+EXCEPTION
+END;
+/
 
+2. Named Block ---- Stored as an Object in DB.
+
+PROCEDURE
+FUNCTION
+PACKAGE
+TRIGGER
+*/
+
+SET SERVEROUTPUT ON;
+DECLARE  
+    variable varchar2(10):='hi';
+    num1 number(20,1):=&num1;
+    num2 number(20,1):=&num2;
+    add number(30,1);
+BEGIN
+    add:=num1+num2;
+    dbms_output.put_line(variable);
+    dbms_output.put_line('Addition value of '||num1||' and '||num2||' is '||add);
+    
+end;
+/
+--------------------------------------------Using select statement inside PLSQL Block using Variables---------------------------------------------------
+SET SERVEROUTPUT ON;
+Declare
+    va_dep varchar(20);
+Begin
+    select department into va_1 from employee where emp_id='4';             --single variable
+    dbms_output.put_line('department is '|| va_dep);
+end;
+/
+
+SET SERVEROUTPUT ON;
+Declare
+    va_fname varchar(20);
+    va_sal number(10);
+Begin
+    select first_name,salary into va_fname,va_sal from employee where emp_id='5';             --multi variable
+    dbms_output.put_line('Employees First name is '||va_fname||' and its Salary is ' ||va_sal );
+end;
+/
+
+--------------------------------------------Using DML statement inside PLSQL Block---------------------------------------------------
+---1. INSERT
+
+SET SERVEROUTPUT ON;
+Declare
+Begin
+    insert into customer1 (cust_id, first_name, last_name,email,phone,city) 
+    values (1, 'Amit', 'Shah', 'amit.shah@email.com', '9876543210', 'Mumbai');
+    commit;
+End;
+/
+--Insert values from existing customer table
+SET SERVEROUTPUT ON;
+Declare
+Begin
+    insert into customer1 
+    select * from customer where cust_id != 1;
+    commit;
+End;
+/
+
+select * from customer;
+select * from customer1;
+
+---2. UPDATE
+Begin
+    update customer1 set first_name='Tanish' where cust_id=1;
+End;
+/
+
+---3. DELETE
+Begin
+    delete from customer1 where cust_id=10;
+    commit;
+End;
+/
+----------------------------------------------------------------------------------------------------------------------------------------
