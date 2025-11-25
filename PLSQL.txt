@@ -148,4 +148,93 @@ dbms_output.put_line('The customer name is '||var_all_columns.cust_name);
 dbms_output.put_line('The customer dob is '||var_all_columns.dob);
 End;
 /
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------CONTROL/CONDITIONAL STATEMENTS-------------------------------------------------------------
+--1. IF STATEMENTS
+set serveroutput on;
+declare
+a boolean:=&a;
+begin
+    if a = true then
+        dbms_output.put_line('a is true');
+    elsif a is null then
+        dbms_output.put_line('please give either true or false');
+    else
+        dbms_output.put_line('a is false');
+    end if;
+end;
+/
+
+--2. CASE
+desc employee;
+select * from employee;
+
+set serveroutput on;
+Declare
+v_empid number(6):=&v_empid;
+v_salary number(10);
+v_fname varchar2(20);
+Begin
+    select salary, first_name into v_salary, v_fname from employee where emp_id=v_empid;
+case
+when v_salary > 70000 then
+    dbms_output.put_line(v_fname||' has best salary Amount = '||v_salary); 
+when v_salary >= 50000 and v_salary <= 70000 then
+    dbms_output.put_line(v_fname||' has good salary Amount = '||v_salary);
+when v_salary >= 40000 and v_salary < 50000 then
+    dbms_output.put_line(v_fname||' has average salary Amount = '||v_salary);
+else 
+    dbms_output.put_line(v_fname||' has low salary Amount = '||v_salary);
+end case;
+End;
+/
+--NOTE IF WE WANT TO DISPLAY A COLUMN using SELECT GO WITH CASE STATEMENT
+
+select * from cust;
+
+select cust_id, cust_name, dob, city, mobile_n, 
+case 
+when initcap(city)= 'Chennai' then '+C-'||mobile_n
+when initcap(city)= 'Pune' then '+P-'||mobile_n
+when initcap(city)= 'Hyderabad' then '+H-'||mobile_n
+else mobile_n
+end as new_mob_no from cust;
+    
+-----------------------------------------------LOOPS-------------------------------------------------------------
+
+--1. LOOP
+
+declare 
+c number(10):=0;
+begin
+loop
+c:=c+2;
+dbms_output.put_line(c);
+exit when c>=10;
+end loop;
+end;
+/
+
+--2. WHILE LOOP
+
+declare
+c number(10):=0;
+begin
+while(c<5)
+loop
+dbms_output.put_line(c);
+c:=c+1;
+end loop;
+end;
+/
+
+--3. FOR LOOP
+
+declare
+c number(10);
+begin
+for c in 1..5         --To print in reverse [for c in reverse 1..5]
+loop
+dbms_output.put_line(c);
+end loop;
+end;
+/
