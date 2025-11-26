@@ -238,3 +238,49 @@ dbms_output.put_line(c);
 end loop;
 end;
 /
+--=========================================================== CURSOR ========================================================================
+/*
+What is Cursor?
+
+Cursor is defined as a private work area where the sql statement (SELECT and DML) is executed.
+A cursor is a mechanism that lets you handle multiple rows returned by a query in PL/SQL.
+You use a cursor when your SQL query returns multiple rows and you want to process them one by one. 
+If you try to do it without cursor you may get error => ORA-01422: exact fetch returns more than requested number of rows
+Without cursor you can fetch single row.
+
+Two types:-
+
+1. Implicit Cursor (Automatic)
+  ----------------------------
+Created automatically by Oracle for every session and managed by oracle whenever you run a DML and SELECT statement.
+eg:-    SELECT * INTO v_name FROM employees WHERE emp_id = 10;
+Oracle internally creates an implicit cursor to execute this. We donnot have control over this cursor but we can get information from its attributes.
+
++++Cursor Attributes (Common to Both)
+Both implicit and explicit cursors have:
+
+Attribute	Type        Meaning
+%FOUND      Boolean   TRUE if last fetch/operation returned a row
+%NOTFOUND	Boolean   TRUE if last operation returned no row
+%ROWCOUNT	Number    Number of rows processed so far
+%ISOPEN 	Boolean   TRUE if cursor is open
+
+%ISOPEN is always FALSE
+Because Oracle automatically opens and closes it in a single step
+You cannot manually open or close it.
+*/
+
+--To see attributes of implicit cursor
+desc cust;
+select * from cust;
+set serveroutput on;
+Begin
+update cust set mobile_n='+91-'||mobile_n where cust_id=&cust_id;
+if sql%notfound then
+    dbms_output.put_line('No data found');
+else 
+    dbms_output.put_line(sql%rowcount||' - rows updated');
+end if;
+End;
+/
+
