@@ -284,3 +284,45 @@ end if;
 End;
 /
 
+/*
+2. Explicit Cursor (User Defined)
+  --------------------------------
+  An explicit cursor is a cursor that you create manually in PL/SQL to handle and process multiple rows returned by a query.
+  Oracle does not automatically manage it — you control the OPEN, FETCH, and CLOSE steps.
+  
+*/
+--NAMED EXPLICIT CURSOR
+---For Bulk select
+set serveroutput on;
+Declare
+    v_salary employee.salary%type;
+    v_fname employee.first_name%type;
+    cursor c1 is select salary, first_name from employee order by salary desc;
+Begin
+    open c1;
+    loop
+        fetch c1 into v_salary,v_fname;
+        exit when (c1%notfound) or (c1%rowcount>5);
+        dbms_output.put_line(v_fname||' - '||v_salary);
+    end loop;
+    dbms_output.put_line('');
+    dbms_output.put_line('Total Rows :- '||c1%rowcount);
+    close c1;
+End;
+/
+
+--FOR EXPLICIT CURSOR
+---Here we dont need to declare variable (a composite variable will handle it ) and open or close cursor, FOR will handle it.
+
+set serveroutput on;
+Declare
+    cursor c2 is select last_name, salary from employee;
+Begin
+    for i in c2         -- i is composite variable.
+    loop
+    dbms_output.put_line(i.last_name||' has '||'this much '||i.salary);
+    end loop;
+End;
+/
+
+--PARAMETER EXPLICIT CURSOR
