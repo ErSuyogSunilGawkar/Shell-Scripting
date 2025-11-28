@@ -326,3 +326,28 @@ End;
 /
 
 --PARAMETER EXPLICIT CURSOR
+---A parameterized cursor is a cursor that accepts parameters when opened. To filter data dynamically to avoid hardcoded WHERE conditions and to
+---reuse the same cursor for different values.
+desc engineer;
+select * from engineer;
+
+
+set serveroutput on;
+Declare
+    cursor c3(e_branchid number) is select name, branch, salary from engineer where branch_id=e_branchid;
+    e_name varchar2(20);
+    e_branch varchar2(20);
+    e_salary number(10,2);
+Begin
+    open c3(102);
+    loop
+    fetch c3 into e_name,e_branch,e_salary;
+    exit when c3%notfound;
+    dbms_output.put_line('The name is '||e_name||' - '||e_branch||' earns '||e_salary); 
+    end loop;
+    close c3;
+End;
+/
+    
+
+
