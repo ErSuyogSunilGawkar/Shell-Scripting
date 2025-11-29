@@ -348,6 +348,64 @@ Begin
     close c3;
 End;
 /
-    
+
+/*
+REF CURSOR
+Ref cursor is a datatype that holds a cursor value in thesame way a VARCHAR2 holds a string value. 
+It is a pointer that points to the result of a query. “REF CURSOR is a pointer to a query result that allows dynamic queries and is mainly used 
+to return result sets to applications.”
+Two types of REF CURSOR:
+    Strong REF CURSOR → return type is fixed (must match a table or rowtype).
+    Weak REF CURSOR → no fixed return type (can return any query).
+Most developers use weak REF CURSOR.
+*/
+
+-- i. Weak REF CURSOR → no fixed return type (can return any query).
+set serveroutput on;
+Declare
+    type ref_cursor is REF CURSOR;
+    rc_employee_data ref_cursor;
+    e_name varchar2(20);
+    v_lname varchar(20);
+Begin
+dbms_output.put_line('----- Engineer Table -----');
+    open rc_employee_data for select name from engineer;
+    loop
+    fetch rc_employee_data into e_name;
+    exit when rc_employee_data%notfound;
+    dbms_output.put_line(e_name);
+    end loop;
+    close rc_employee_data;
+dbms_output.put_line('----- Employee Table -----');
+    open rc_employee_data for select last_name from employee;
+    loop
+    fetch rc_employee_data into v_lname;
+    exit when rc_employee_data%notfound;
+    dbms_output.put_line(v_lname);
+    end loop;
+    close rc_employee_data;
+dbms_output.put_line('----- End -----');
+End;
+/
+
+--- ii. Strong REF CURSOR → return type is fixed (must match a table or rowtype).
+
+set serveroutput on;
+Declare
+type ref_cursor is REF CURSOR return employee%rowtype;
+rc_employee_list ref_cursor;
+e_allrecord employee%rowtype;
+
+Begin
+    open rc_employee_list for select * from employee;
+    loop
+    fetch rc_employee_list into e_allrecord;
+    exit when rc_employee_list%notfound;
+    dbms_output.put_line('The First name is - '||e_allrecord.first_name);
+    dbms_output.put_line(e_allrecord.first_name||' s hire date is - '||e_allrecord.hire_date);
+    end loop;
+    close rc_employee_list;
+End;
+/
 
 
