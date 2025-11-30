@@ -409,3 +409,83 @@ End;
 /
 
 
+/*
+✅ What is a Stored Procedure?
+
+A Stored Procedure is a pre-compiled PL/SQL program stored in the database.
+It performs a specific task (like inserting data, updating records, calculations, etc.)
+
+Think of it like a function in programming, but stored inside the database.
+*/
+-- 1. Non parameterized
+set serveroutput on;
+Create or replace procedure proc_1
+as
+Begin
+    dbms_output.put_line('Welcome to PLSQL Session');
+End;
+
+exec proc_1;
+
+--To drop
+drop procedure proc_1;
+
+
+-- 2. Parameterized
+/*
+Types of Parameterized Procedures in PL/SQL
+PL/SQL procedures support three parameter modes:
+*/
+--- A.️ IN parameter
+--- Passes value into the procedure, Procedure cannot modify the value (read-only), Most commonly used.
+set serveroutput on;
+Create or replace procedure proc_2 (p_vid in number) 
+as
+Begin
+    dbms_output.put_line('ID = '||p_vid);
+End;
+
+exec proc_2(10);
+-- or use a PLSQL Block to execute.
+Begin
+    proc_2(10);
+End;
+/
+
+--- B. OUT parameter
+--- Procedure returns a value back to the caller, Works like a "return variable", Must be assigned inside the procedure.
+
+set serveroutput on;
+Create or replace procedure proc_3 (p_name out varchar2)
+as
+Begin
+    p_name:= 'GAWKAR';
+End;
+
+--To execute this we need a PLSQL anonymous Block and declare a new string variable.
+Declare
+    v_name varchar(20);
+Begin
+    proc_3(v_name);
+    dbms_output.put_line('The name is '||v_name||', SUYOG '||v_name);
+End;
+/
+
+--- C. IN OUT parameter
+--- Sends a value inside the procedure, Returns a (possibly modified) value back Useful when you want read+write access.
+
+Create or replace procedure proc_4 (x in out number)
+as
+Begin
+    x:=x*5;
+End;
+
+Declare 
+    x number(10);
+Begin
+    x:=4;
+    proc_4(x);
+    dbms_output.put_line('Value of x is '||x);
+End;
+/
+
