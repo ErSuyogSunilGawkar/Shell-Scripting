@@ -489,3 +489,24 @@ Begin
 End;
 /
 
+--- Parameterized Procedure with Cursor.
+select * from engineer;
+set serveroutput on;
+Create or replace procedure get_engineers(in_branch_id IN engineer.branch_id%type)
+as
+v_name varchar(20);
+v_salary number(10);
+v_branch varchar(20); 
+cursor c1 is select name, salary, branch into v_name, v_salary, v_branch from engineer where branch_id=in_branch_id order by salary desc;
+Begin
+    Open c1;
+    loop
+    fetch c1 into v_name,v_salary,v_branch;
+    exit when c1%notfound;
+    dbms_output.put_line('Name is '||v_name||' Branch is '||v_branch||' and Salary is '||v_salary);
+    end loop;
+    close c1;
+End;
+
+
+exec get_engineers(105);
