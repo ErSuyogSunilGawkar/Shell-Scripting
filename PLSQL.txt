@@ -240,7 +240,7 @@ end;
 /
 --=========================================================== CURSOR ========================================================================
 /*
-What is Cursor?
+✅ What is Cursor?
 
 Cursor is defined as a private work area where the sql statement (SELECT and DML) is executed.
 A cursor is a mechanism that lets you handle multiple rows returned by a query in PL/SQL.
@@ -510,3 +510,81 @@ End;
 
 
 exec get_engineers(105);
+
+
+/*
+✅ What is a Function?
+A function is a named PLSQL block which is similar to a procedure. Main difference between both of them is that a function always retuens a value whereas
+a procedure may or may not return a value.
+A function is a sub program that returns a value when called.
+Functions can return more than one value  via OUT parameter. Functions can accept default values.
+*/
+--- 1. FUNCTION Ex 1
+select * from engineer;
+select branch, count(*) from engineer group by branch;
+set serveroutput on;
+Create or replace function salary_hike(p_eng_id IN number)
+return number
+as
+v_dept engineer.branch%type;
+v_salary engineer.salary%type;
+v_raise number(10,2);
+v_newsal number(10,2);
+Begin
+    select Branch, Salary into v_dept, v_salary from engineer where eng_id=p_eng_id;
+    case
+    when v_dept='Automobile' then 
+    if (v_salary<55000) then v_raise:=0.50;
+    elsif (v_salary>55000) then v_raise:=1.00;
+    else v_raise:=0; end if;
+    when v_dept='Mechanical' then
+    if (v_salary<46000) then v_raise:=0.30;
+    else v_raise:=0; end if;
+    when v_dept='Computer' then
+    if (v_salary<60000) then v_raise:=0.05;
+    else v_raise:=0; end if;
+    else v_raise:=0.10;
+    end case;
+    if v_raise>0
+    then 
+    v_newsal:= v_salary + (v_salary*v_raise);
+    else
+    v_newsal:= v_salary;
+    end if;
+    return v_newsal;
+End;
+
+select eng_id, name, branch,salary, salary_hike(eng_id) New_salary from engineer order by New_salary desc;
+select eng_id, name, branch,salary, salary_hike(eng_id) New_salary from engineer where name='Suyog';
+
+--- 2. FUNCTION Ex 2
+
+create table employee_info
+( EMP_ID number(5) primary key, FIRST_NAME varchar2(20), LAST_NAME varchar2(20));
+desc employee_info;
+insert into employee_info values (10, 'RAKESH', 'SHARMA');
+insert into employee_info values (20, 'JOHN', 'PAUL');
+
+create table emp_address_details
+(EMP_ADDRESS_ID number(5) primary key, EMP_ID number(5) references employee_info(EMP_ID), CITY varchar2(15), STATE varchar2(15), COUNTRY varchar2(15), ZIP_CODE varchar2(15));
+desc emp_address_details;
+insert into emp_address_details values (101, 10, 'Vegas', 'LONDON', 'UK', '88901');
+insert into emp_address_details values (102, 20, 'Carson', 'NEVADA', 'US', '90220');
+commit;
+
+select * from employee_info;
+select * from emp_address_details;
+
+set serveroutput on;
+Create or replace function Get_Employee_Address(v_emp_id IN number)
+return varchar2
+as
+v_address varchar2(1000);
+Begin
+    select 'Name is '||e.FIRST_NAME||' '||e.LAST_NAME||' '||'And Address is '||a.EMP_ADDRESS_ID||' '|| a.CITY||' '||a.STATE||' '||a.COUNTRY||' '||a.ZIP_CODE 
+    into v_address
+    from employee_info e, emp_address_details a where e.EMP_ID=v_emp_id and a.EMP_ID=e.EMP_ID;
+    return v_address;
+End;
+
+select EMP_ID, FIRST_NAME, Get_Employee_Address(EMP_ID) ADDRESS from employee_info;
