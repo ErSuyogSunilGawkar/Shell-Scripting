@@ -588,3 +588,67 @@ Begin
 End;
 
 select EMP_ID, FIRST_NAME, Get_Employee_Address(EMP_ID) ADDRESS from employee_info;
+
+
+/*
+✅ What is a Package?
+A package is a container (like a folder) that groups related procedures, functions, variables, cursors, and exceptions into one unit.
+Think of it like:
+
+📁 Package: EMPLOYEE_MGMT
+→ contains multiple related procedures & functions
+• add_employee
+• update_salary
+• get_employee_details
+• calculate_bonus
+• variables, constants, cursors…
+
+It helps keep your code organized, reusable, secure, and easier to maintain.
+*/
+select * from engineer;
+set serveroutput on;
+
+Create or replace Package ENG_MODIFY 
+as
+procedure add_engineer(e_eng_id number, e_name varchar2, e_branch varchar2,e_branch_id number, e_salary number, e_year number);
+procedure delete_engineer(e_eng_id number);
+function get_salary(e_eng_id number) return number;
+end ENG_MODIFY;
+
+Create or replace package body ENG_MODIFY
+as
+procedure add_engineer(e_eng_id number, e_name varchar2, e_branch varchar2,e_branch_id number, e_salary number, e_year number)
+as
+Begin
+    insert into engineer values(e_eng_id, e_name, e_branch,e_branch_id, e_salary, e_year);
+End;
+
+procedure delete_engineer(e_eng_id number)
+as
+Begin
+    delete from engineer where eng_id=e_eng_id;
+End;
+
+function get_salary(e_eng_id number) return number
+as
+    e_sal number(10);
+Begin
+    select salary into e_sal from engineer where eng_id=e_eng_id;
+    return e_sal;
+End;
+End ENG_MODIFY;
+
+exec ENG_MODIFY.add_engineer(21,'sanil','extc',108,25000,2030);
+select ENG_MODIFY.get_salary(20) from dual;
+exec ENG_MODIFY.delete_engineer(21);
+
+
+
+
+
+
+
+
+
+
+
