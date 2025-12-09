@@ -643,12 +643,159 @@ select ENG_MODIFY.get_salary(20) from dual;
 exec ENG_MODIFY.delete_engineer(21);
 
 
+/*
+Pragma Autonomous Transaction
+------------------------------
+An autonomous transaction is a separate, independent transaction inside a PL/SQL block that allows
+you to commit or rollback without affecting the main transaction.
+*/
+set serveroutput on;
+CREATE TABLE one_tab (
+    val NUMBER
+);
+
+CREATE OR REPLACE PROCEDURE child_insert(p_value NUMBER)
+IS
+    PRAGMA AUTONOMOUS_TRANSACTION;
+BEGIN
+    INSERT INTO one_tab VALUES (p_value);
+    COMMIT;   -- autonomous transaction MUST commit
+END;
+/
+
+Begin
+    INSERT INTO one_tab VALUES (10);    -- Parent insert (normal transaction)
+    child_insert(20);   -- Child insert (autonomous → commits immediately)
+END;
+/
+select * from one_tab;
+truncate table one_tab;
+rollback;
 
 
+/*
+✅ What is a Trigger?
+Triggers in PL/SQL are special stored programs that automatically execute (fire) when a specific event happens in the database.
+They are not called manually—Oracle calls them automatically.
+* uses
+To audit changes
+To enforce business rules
+To maintain data consistency
+To generate automatic values
+For security controls
 
+⭐ Types of Triggers
+1. DML Triggers (Most Common)
+Fire when a table is modified. Example uses: Validate data, Automatically insert into audit table.
 
+1. Statement-Level Trigger  
+🔹 Fires once per SQL statement, NOT per row.
+Even if the SQL modifies 1000 rows, the trigger fires only once.
+*/
+CREATE OR REPLACE TRIGGER trg_statement
+BEFORE INSERT ON employees
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Statement-level trigger fired');
+END;
+/
+/*
+2. Row-Level Trigger
+🔹 Fires once for every row affected by the statement.
+If 100 rows are inserted → trigger fires 100 times.
 
+Types:-
+🔹BEFORE INSERT
+🔹BEFORE UPDATE
+🔹BEFORE DELETE
+🔹AFTER INSERT
+🔹AFTER UPDATE
+🔹AFTER DELETE
+*/
+set serveroutput on;
+--✅ Step 1 — Create Sample Table
+CREATE TABLE emp1 (
+    emp_id   NUMBER,
+    name     VARCHAR2(50),
+    salary   NUMBER
+);
+--✅ Step 2 — Create Audit Table (to record actions)
+CREATE TABLE emp_audit (
+    action_type  VARCHAR2(20),
+    emp_id       NUMBER,
+    old_salary   NUMBER,
+    new_salary   NUMBER,
+    action_time  DATE
+);
+--1.  BEFORE INSERT 
+Create or replace trigger bi_emp
+before insert on emp1
+for each row
+Begin
+    if :NEW.salary is NULL
+    then
+        :new.salary := 20000;
+    end if;
+End;
+/
 
+--2. After INSERT
+Create or replace trigger ai_emp
+after insert on emp1
+for each row
+Begin
+     INSERT INTO emp_audit(action_type, emp_id, new_salary, action_time)
+    VALUES ('INSERT', :NEW.emp_id, :NEW.salary, SYSDATE);
+End;
+/
 
+--3. Before UPDATE
+CREATE OR REPLACE TRIGGER bu_emp
+BEFORE UPDATE ON emp1
+FOR EACH ROW
+BEGIN
+    IF :NEW.salary < :OLD.salary THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Salary cannot be decreased!');
+    END IF;
+END;
+/
 
+--4. After UPDATE
+CREATE OR REPLACE TRIGGER au_emp
+AFTER UPDATE ON emp1
+FOR EACH ROW
+BEGIN
+    INSERT INTO emp_audit VALUES ('UPDATE', :OLD.emp_id, :OLD.salary, :NEW.salary, SYSDATE);
+END;
+/
 
+--5. Before DELETE
+CREATE OR REPLACE TRIGGER bd_emp
+BEFORE DELETE ON emp1
+FOR EACH ROW
+BEGIN
+    IF :OLD.salary > 50000 THEN
+        RAISE_APPLICATION_ERROR(-20002, 'Cannot delete high-salary employees!');
+    END IF;
+END;
+/
+
+--6. After DELETE
+CREATE OR REPLACE TRIGGER ad_emp
+AFTER DELETE ON emp1
+FOR EACH ROW
+BEGIN
+    INSERT INTO emp_audit VALUES ('DELETE', :OLD.emp_id, :OLD.salary,:NEW.salary, SYSDATE);
+END;
+/
+
+-- TESTING
+INSERT INTO emp1 (emp_id, name, salary) VALUES (3, 'dummy1', 30000);
+INSERT INTO emp1 (emp_id, name, salary) VALUES (4, 'dummy2', 30000);
+select * from emp1;
+select * from emp_audit;
+Update emp1 set salary=60000 where emp_id=2;
+Update emp1 set salary=10000 where emp_id=1;
+Update emp1 set salary=40000 where emp_id=3;
+delete from emp1 where emp_id=2;
+delete from emp1 where emp_id=4;
+commit;
