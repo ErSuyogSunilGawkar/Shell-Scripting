@@ -688,7 +688,7 @@ For security controls
 1. DML Triggers (Most Common)
 Fire when a table is modified. Example uses: Validate data, Automatically insert into audit table.
 
-1. Statement-Level Trigger  
+A. Statement-Level Trigger  
 🔹 Fires once per SQL statement, NOT per row.
 Even if the SQL modifies 1000 rows, the trigger fires only once.
 */
@@ -699,7 +699,7 @@ BEGIN
 END;
 /
 /*
-2. Row-Level Trigger
+B. Row-Level Trigger
 🔹 Fires once for every row affected by the statement.
 If 100 rows are inserted → trigger fires 100 times.
 
@@ -799,3 +799,41 @@ Update emp1 set salary=40000 where emp_id=3;
 delete from emp1 where emp_id=2;
 delete from emp1 where emp_id=4;
 commit;
+
+/*
+2. DDL Triggers
+DDL triggers are used for control, security, and auditing.
+*/
+
+--A. BEFORE DDL
+CREATE OR REPLACE TRIGGER trg_before_ddl
+BEFORE DDL ON SCHEMA
+BEGIN
+    IF ORA_SYSEVENT = 'DROP' THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Dropping objects is not allowed in this schema!');
+    END IF;
+END;
+/
+--TESTING
+DROP TABLE emp;
+ORA-20001: Dropping objects is not allowed in this schema!
+
+--B. AFTER DDL
+CREATE TABLE ddl_log (
+    username    VARCHAR2(30),
+    event_type  VARCHAR2(30),
+    object_name VARCHAR2(30),
+    event_time  DATE
+);
+drop trigger trg_after_ddl;
+CREATE OR REPLACE TRIGGER trg_after_ddl
+AFTER DDL ON SCHEMA
+BEGIN
+    INSERT INTO ddl_log
+    VALUES (
+        ORA_LOGIN_USER, ORA_SYSEVENT, ORA_DICT_OBJ_NAME, SYSDATE);
+END;
+
+--TESTING
+CREATE TABLE test_table (id NUMBER);
+SELECT * FROM ddl_log;
