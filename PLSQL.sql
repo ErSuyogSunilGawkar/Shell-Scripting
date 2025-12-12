@@ -837,3 +837,69 @@ END;
 --TESTING
 CREATE TABLE test_table (id NUMBER);
 SELECT * FROM ddl_log;
+
+/*
+3. INSTEAD OF TRIGGER
+An INSTEAD OF trigger is a special trigger in Oracle that is used only on views, not on tables. 
+Mostly used in case of complex views where we can edit both the base tables, Because not all views are directly updatable.
+*/
+
+CREATE TABLE dept3 (
+    dept_id NUMBER PRIMARY KEY,
+    dept_name VARCHAR2(20)
+);
+
+CREATE TABLE emp3 (
+    emp_id NUMBER PRIMARY KEY,
+    emp_name VARCHAR2(20),
+    dept_id NUMBER REFERENCES dept3(dept_id)
+);
+
+--⭐ Create Complex View (JOIN VIEW)
+create or replace view v$emp_dep_3 
+as
+select e.emp_id, e.emp_name, d.dept_id, d.dept_name from emp3 e join dept3 d on e.dept_id = d.dept_id;
+
+--Try inserting
+insert into v$emp_dep_3 values (1, 'Suyog', 'Automobile');
+--SQL Error: ORA-01776: cannot modify more than one base table through a join view
+-- So we will use Instead of trigger
+
+Create or replace trigger tr_emp_dep_instead
+instead of insert on v$emp_dep_3
+Declare
+check_exist number :=0;
+
+Begin
+select count(*) into check_exist from dept3 where dept_id=:new.dept_id;
+if check_exist=0 then 
+insert into dept3 (dept_id, dept_name) values (:new.dept_id, :new.dept_name);
+end if;
+
+select count(*) into check_exist from emp3 where emp_id=:new.emp_id;
+if check_exist=0 then 
+INSERT INTO emp3 (emp_id, emp_name, dept_id) VALUES (:new.emp_id, :new.emp_name, :new.dept_id);
+end if;
+end;
+/
+
+--TESTING
+insert into v$emp_dep_3 values(1,'Suyog', 001, 'Automobile'); 
+commit;
+select * from v$emp_dep_3;
+select * from emp3;
+select * from dept3;
+
+/*
+🚫 What is a Mutating Trigger Error?
+A mutating trigger error (ORA-04091) happens when:
+👉 A row-level trigger
+👉 Tries to read or modify the same table
+👉 On which it is currently firing.
+
+Oracle says:
+
+“Table is mutating — cannot read it!”
+
+Because the table is changing row-by-row, Oracle doesn’t allow reading it at the same moment.
+*/
