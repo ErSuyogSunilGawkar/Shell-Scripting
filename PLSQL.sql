@@ -903,3 +903,41 @@ Oracle says:
 
 Because the table is changing row-by-row, Oracle doesn’t allow reading it at the same moment.
 */
+
+
+
+/*
+⭐⭐ ORACLE DATA TYPES ⭐⭐
+--------------------------
+    [SCALAR DATA TYPES]                                [COMPOSITE DATA TYPES]
+-- Number, int, float                            1. Record
+-- char, varchar, varchar2, nvarchar             -- %Type
+-- date, timestamp                               -- %Rowtype
+-- boolean                                       
+                                                 2. Collection
+                                                 -- Varray
+                                                 -- Nested Table
+                                                 -- Associative Array
+                                                 
+                                                 
+✅ What is a RECORD in PL/SQL?
+
+A RECORD in PL/SQL is a composite data type that can store multiple related values with different datatypes 
+together under one variable name — just like one row of a table.
+👉 Each value inside a record is called a field.
+Record = Group of variables of different data types stored together
+*/
+select * from emp3;
+set serveroutput on;
+Declare
+    Type emp_rec is RECORD (
+        emp_id number,
+        emp_name varchar2(50)
+        );
+    rec_var emp_rec;
+Begin 
+    select emp_id, emp_name into rec_var from emp3 where emp_id=1;
+    dbms_output.put_line('The ID of employee is : '||rec_var.emp_id);
+    dbms_output.put_line('The NAME of employee is : '||rec_var.emp_name);
+End;
+/
