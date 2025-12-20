@@ -1,0 +1,50 @@
+🔴 1️⃣ Data Guard Lag Issue (PR → DR not in sync)
+🔎 Step 1: Check Database Role ✔ Confirm you are on Standby
+	SELECT database_role, open_mode FROM v$database;
+🔎 Step 2: Check Transport & Apply Lag
+	SELECT name, value FROM v$dataguard_stats WHERE name IN ('transport lag','apply lag');
+🔎 Step 3: Check MRP Process
+	SELECT process, status FROM v$managed_standby;
+🔎 Step 4: Sequence Gap Check
+	SELECT MAX(sequence#) FROM v$archived_log WHERE applied='YES';
+
+
+🔴 2️⃣ ASM Diskgroup Space Full
+🔎 Step 1: Check Diskgroup Space
+	SELECT name, total_mb, free_mb FROM v$asm_diskgroup;
+🔎 Step 2: Identify Large Files
+	SELECT file_type, SUM(bytes)/1024/1024 MB FROM v$asm_file GROUP BY file_type;
+
+
+🔴 3️⃣ RAC Node Eviction(One RAC node went down automatically.)
+🔎 Step 1: Check CRS Status 
+	crsctl stat res -t
+🔎 Step 2: Check Alert Log
+	tail -100 alert_<sid>.log
+🔎 Step 3: Check Interconnect
+	oifcfg getif
+	
+	RAC node eviction is mainly caused by interconnect or heartbeat issues. The solution 
+	is to check CSS logs, verify private network health, fix interconnect latency or packet loss,
+	and then restart CRS on the evicted node.
+
+
+🔴 4️⃣ Blocking Session Issue
+🔎 Step 1: Identify Blocking Session
+SELECT sid, serial#, blocking_session FROM v$session WHERE blocking_session IS NOT NULL;
+🔎 Step 2: Identify Object
+SELECT object_name FROM dba_objects WHERE object_id = (SELECT object_id FROM v$locked_object);
+🔎 Step 3: Identify SQL
+SELECT sql_text FROM v$sql WHERE sql_id = (SELECT sql_id FROM v$session WHERE sid = <sid>);
+✅ Resolution
+ALTER SYSTEM KILL SESSION 'sid,serial#' IMMEDIATE;
+
+
+🔴 6️⃣ Listener Down (ORA-12514) Application cannot connect.
+🔎 Step 1: Check Listener
+	lsnrctl status
+🔎 Step 2: Check Service
+	SELECT name FROM v$services;
+✅ Resolution
+lsnrctl start
+ALTER SYSTEM REGISTER;
