@@ -941,3 +941,84 @@ Begin
     dbms_output.put_line('The NAME of employee is : '||rec_var.emp_name);
 End;
 /
+
+
+/*
+✅ What are Collections in PL/SQL?
+
+Collections in PL/SQL are data structures that allow you to store multiple values of the same datatype under 
+a single variable name — similar to arrays or lists in other languages.
+Record = one row (different datatypes)
+Collection = many rows (same datatype)
+Handle multiple rows in memory
+Improve performance (less context switching)
+*/
+
+--1. VARRAY
+--A VARRAY is a collection type in PL/SQL that stores a fixed maximum number of elements and maintains element order.
+--Maximum size is fixed at declaration.
+--Values are shifted after DELETE
+--🔸 Use Case
+--✔ Small, fixed lists (phone numbers, days)
+
+set serveroutput on;
+Declare
+Type phone_arr is varray(3) of number;
+vphone phone_arr := phone_arr(111,222,333);
+Begin
+    dbms_output.put_line(vphone(1));
+    --Methods
+    dbms_output.put_line('Displaying Count of total elements in array : '||vphone.count);
+    dbms_output.put_line('Displaying Array Max limit : '||vphone.limit);
+    dbms_output.put_line('Displaying First index : '||vphone.first);
+    dbms_output.put_line('Displaying Last index : '||vphone.last);
+    vphone.trim;
+    dbms_output.put_line('After trim count : '||vphone.count);
+    vphone.extend;
+    vphone(3):=444;
+    dbms_output.put_line('New element value :'||vphone(3));
+    dbms_output.put_line('After Extend count : '||vphone.count);
+    if vphone.exists(4) then
+    vphone(4):=555;
+    else
+    dbms_output.put_line('No extra space in array');
+    end if;
+    vphone.delete();
+    dbms_output.put_line('After Delete count : '||vphone.count);
+End;
+/
+
+--2. Nested Table
+-- A Nested Table is a collection type in PL/SQL that can store multiple values of the same datatype, and does not have a fixed size.
+-- Basically its an array that can grow dynamically and can have gaps in index values.
+
+DECLARE
+  TYPE t_nums IS TABLE OF NUMBER;
+  v_nums t_nums := t_nums(10, 20, 30);
+BEGIN
+  v_nums.EXTEND;
+  v_nums(4) := 40;
+
+  v_nums.DELETE(2); -- deletes value 20
+
+  FOR i IN v_nums.FIRST .. v_nums.LAST LOOP
+    IF v_nums.EXISTS(i) THEN
+      DBMS_OUTPUT.PUT_LINE(v_nums(i));
+    END IF;
+  END LOOP;
+END;
+/
+
+--3. Associative Array
+--An Associative Array is a PL/SQL-only collection that stores key–value pairs, similar to a hash map.
+
+DECLARE
+  TYPE t_salary IS TABLE OF NUMBER INDEX BY Varchar2(20);
+  v_salary t_salary;
+BEGIN
+  v_salary('name1')  := 50000;
+  v_salary('name2') := 60000;
+
+  DBMS_OUTPUT.PUT_LINE(v_salary('name1'));
+END;
+/
