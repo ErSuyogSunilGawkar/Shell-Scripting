@@ -297,3 +297,109 @@ scalability, and load balancing.
 
 20) How many alert logs exist in a RAC environment?
 => One for each instance.
+
+
+###INDEXING
+Indexing is a database technique used to speed up data retrieval by creating a separate data structure that allows the 
+database to find rows quickly without scanning the entire table.
+
+1. B-TREE Index (Default)
+
+Most commonly used
+
+Use when:
+High cardinality columns (many unique values)
+Used in WHERE, JOIN, ORDER BY
+
+	CREATE INDEX idx_emp_id ON emp(emp_id);
+
+2️. BITMAP Index
+
+Stores bits (0/1) instead of rowids
+
+Use when:
+
+Low cardinality columns
+Data warehouse / reporting
+Mostly read-only tables
+
+	CREATE BITMAP INDEX idx_gender ON emp(gender);
+
+3. UNIQUE Index
+
+Ensures uniqueness
+
+Automatically created for:
+PRIMARY KEY
+UNIQUE constraint
+
+	CREATE UNIQUE INDEX idx_email ON emp(email);
+
+4. COMPOSITE (Concatenated) Index
+
+Index on multiple columns
+
+	CREATE INDEX idx_dept_job ON emp(deptno, job);
+
+
+###PARTITIONING
+
+Partitioning means dividing a large table or index into smaller, manageable pieces (partitions) based on a key.
+It improves performance, manageability, and availability.
+
+1. Range Partitioning
+
+Partitions data based on value ranges (date/number).
+
+	CREATE TABLE sales (
+	sale_id NUMBER,
+	sale_date DATE
+	)
+	PARTITION BY RANGE (sale_date) (
+	PARTITION p_2024 VALUES LESS THAN (DATE '2025-01-01'),
+	PARTITION p_2025 VALUES LESS THAN (DATE '2026-01-01')
+	);
+	
+Use case:
+
+Date-based data (monthly/yearly)
+OLTP & DWH
+
+2. List Partitioning
+
+Partitions data based on discrete values.
+
+	CREATE TABLE emp (
+	emp_id NUMBER,
+	region VARCHAR2(10)
+	)
+	PARTITION BY LIST (region) (
+	PARTITION p_north VALUES ('NORTH'),
+	PARTITION p_south VALUES ('SOUTH')
+	);
+	
+Use case:
+
+Region, country, status
+
+3. Hash Partitioning
+Hash partitioning distributes rows evenly across partitions using a hash function on the partition key.
+Best for equality searches and load balancing.
+
+Uses hash function to distribute data evenly.
+
+	CREATE TABLE orders (
+	order_id NUMBER
+	)
+	PARTITION BY HASH (order_id)
+	PARTITIONS 4;
+	
+Use case:
+
+Avoid data skew
+High concurrency
+
+🔹 Partition Pruning 
+
+Partition pruning means Oracle reads only the required partitions instead of scanning the entire table, 
+based on the query’s WHERE clause.
