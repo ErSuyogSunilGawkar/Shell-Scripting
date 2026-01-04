@@ -1022,3 +1022,52 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE(v_salary('name1'));
 END;
 /
+
+
+---- ✅ BULK COLLECT
+/*
+🔹 What is BULK COLLECT in PL/SQL?
+BULK COLLECT is a PL/SQL feature used to fetch multiple rows from SQL into collections in one operation instead of fetching row by row.
+👉 Purpose: Improve performance by reducing context switching between SQL and PL/SQL.
+*/
+desc employees;
+set serveroutput on;
+Declare
+    type nt_salary_type is table of employees.emp_salary%type;
+    nt_salary nt_salary_type := nt_salary_type();
+Begin
+    select emp_salary bulk collect into nt_salary from employees;
+    for i in nt_salary.first..nt_salary.last
+    loop
+        dbms_output.put_line(nt_salary(i));
+    end loop;
+End;
+/
+
+-- 1. Bulk Collect with Limit
+Declare
+
+CURSOR c_emp is select * from employees;
+type emp_tab_type is table of employees%ROWTYPE;
+emp_tab emp_tab_type := emp_tab_type();
+
+Begin
+    Open c_emp;
+    LOOP
+    fetch c_emp BULK COLLECT into emp_tab limit 5;
+    exit when emp_tab.count = 0;
+    
+    For i in 1..emp_tab.count
+    loop
+    dbms_output.put_line('Name is : '||emp_tab(i).emp_name||' and Salary is : '||emp_tab(i).emp_salary);
+    end loop;
+    emp_tab.delete;
+    end LOOP;
+    close c_emp;
+End;
+/
+
+
+
+
+
