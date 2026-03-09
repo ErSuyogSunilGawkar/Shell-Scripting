@@ -1,0 +1,180 @@
+IT CLEARANCE(JDE APP + NOVANET)
+
+search it clearance 
+select jde
+open jde team req list => click user => open jd app => user management +> search adress no as emp id 
+=> make it inactive => one form will open user details => fill expiration reason(take from hr remarks from novanet)
+=> if user was available on jde application then open the form on nova and fill jde access diabled = YES and 
+Jde team remarks(put reason JDE ID is Deactivated)=> If user not available after checking on address list in jde app then click user on nova 
+open form and fill jde access diabled = NO and Jde team remarks(put reason JDE ID not exist).
+
+============================================================================================================================================================================================
+
+=> Self ticket assign(JDE APP)
+
+open JDE app => IT works => click "+" => write what description and  why objective => write module code as 98(technical as 
+per the work we can select from the search bar)=> owner-requestor (1158040) prashant sir => task-owner (1457340) suyog => 
+severity 06(as per the work we can select from the search bar)=> Later put work progress => work status=working, 
+project status = WIP. => click on tick => one box will appear=> copy the it ticket no and close that box=> search the no in
+the bar (eg 28753) our ticket will appear=> double click on it and put work status=done project status =96(completed).
+
+============================================================================================================================================================================================
+
+=> USER CREATION JDE
+
+Open JDE 
+
+select app(USER MASTER) - P56C0092 click
+
+First check whether TN user or not 
+User creation and attaching Environment.
+1) Vendors
+
+click "+" enter the required details 
+empid as address, create SAR no if not provided on mail, create new username, enter requestor empid check person on mail
+search on user list in JDE search (eg mandar*) copy his emp id(eg 5010037) in requested by, put approved by empid 
+(eg 1456410 Abhishek sir)
+
+To find designation refer address book from fast access path (P5601012 TN001 -- address book app)
+put "*" in search type (bydefault it is "c" for customer)
+if we have name then put name* in Alpha Name or put empid in address search
+double click on check box beside the name copy the Buisiness unit of the vendor (eg UNIT 1 PLATE) base location=UNIT 1 PLANT.
+put Designation=vendor put Department as on mail department of requestor.
+Save.
+new page(security revisions) 
+=> data source=default , system user=JDE920
+Save
+Now search the user with the username and right click reset password (format testMMYY eg :- test0226)
+search by user id (eg VDSTAYON)
+P0092 => PASTE USERID => double click on tick box => Set Accessibility Mode as on and off save(for refreshing the UI after JDE Login)
+
+Now to add role to the user refer create role document Follow till (Set Environment)(application name := P0092)
+Note:- while assigning environment, Type ROLE (eg: TR7404240) search select and then add environment to that role. Donnot search username.
+To attach role to user start following resume from the document (If new user the set role from application p95921 )
+
+============================================================================================================================================================================================
+
+2) If email id missing error is coming while adding new user go to address book => search addressno(empid) and name will appear => right click on
+name => select "Whos who" => select "Row" => select "Email/Internet" => enter email address => save.
+
+28779
+
+============================================================================================================================================================================================
+
+3) TO ASSIGN previous employee role objects to new employee
+
+go to => p00950
+search old employee role (eg TR7404240)=> select all objects => go to "Form" => securitycopy => add old employee role(From) and new employee role(To) => save
+=> now check again in app p00950.
+
+============================================================================================================================================================================================
+
+4) To ASSIGN new role objects to existing user.
+Go to "IT WORKS" app create a ticket WITH MODULE CODE 94 =>
+Description: (To add objects P43250, P564311, R43800, R470412, R47071, R564313, R564313V to users VDSTAYON, VDSALPAP, VDDELIGH, VDSAMIAPI, VD107059).
+=> SAVE => copy ticket paste search => double click open => right click action/access 
+=> copy all username and objects in below format in excel. => paste to action/access page directly as it is.
+VDSTAYON	P564311
+VD107059	R564313V and so on....
+=> save
+=> Close IT ticket 96 code completed.
+
+============================================================================================================================================================================================
+
+5) ROW/COLUMN SECURITY MAIL
+Go to "IT WORKS" app create a ticket WITH MODULE CODE 94 => 
+=> SAVE => copy ticket paste search => double click open => right click row/column security
+=> we will get one excel in mail download it copy add roll id in first column and other column as it is. => save
+=> attach mail pdf to ticket and then close.
+
+============================================================================================================================================================================================
+
+6) IRN Number File upload
+=> download excel file save => open (10.11.100.144)TISPL
+copy .CSV file and paste the file in below path in TNKPMJ (10.11.100.144) server
+ 
+D:\TNeInvoice\inbound
+ 
+IP: TPPPLKPMGGSTN 10.10.100.140(For TPPPL)
+
+============================================================================================================================================================================================
+
+=> NORMAL CNC JOB STATUS
+
+0. W (waiting)
+1. S (In Queue)
+2. P (pending)
+3. D (done)
+
+============================================================================================================================================================================================
+
+=> DIGITAL SIGNATURE
+
+Flow :-
+--------
+----> JOB STATUS FOR DIGISIGNATURE
+
+Night DIGISINATURE JOB time : 5.00 AM everyday (automatic)
+Day DIGISINATURE JOB time : Every 2-3 mins as per requirement (automatic).
+
+The DIGISINATURE JOB is run by JDE Team on JDE APP. Below are the stages of the job.
+0. W (waiting)
+1. S (In Queue)
+2. P (pending)
+3. G (picked for signature)
+		|
+		--------- (waiting between G & D)
+		|
+4. D (done)
+
+The entire process between the job status "G" & "D" is explained below.
+
+1. DAY & NIGHT DIGITAL SIGNATURE reports of both TISPL & TPPPL are getting generated on enterprise servers BP01 & BP02 by the DIGISINATURE JOB.
+BP01 - TPPPL
+BP02 - TISPL
+	(Note:- When the reports are sent to destination server they are deleted from BP01/02).
+2. For getting digitally verfied the reports are picked from BP01/02 and placed to DIGISIGNATURE servers in (Archieve-Original) folder with the help of windows TASK SCHEDULER JOB.
+3. Once the reports are present in the DIGISIGNATURE servers they are DIGITALLY verified with the help of same windows TASK SCHEDULER JOB and copied in (Archieve-DigiSign) folder.
+4. After getting verified the reports are mailed to the customers (only night reports are mailed not day).
+	If night then cross verify the mails sent to vendors and the reports generated in (Archieve-DigiSign) folder.
+	If day then check whether anything pending in BP01/02.
+	If a particular report is not digitally verified then copy the report from the destination server and paste it again in the BP01/02 and tell darly mam to run the 
+	windows TASK SCHEDULER JOB again.
+5.	If the reports are generated properly and sent to DIGISIGNATURE servers and digitally signed but the mail not sent then tell JDE team to update the mail parameter of DIGISINATURE JOB 
+	and rerun the job. Now check whether the reports are getting generated at BP01/02 and then run the windows TASK SCHEDULER JOB and check whether picked by the windows 
+	TASK SCHEDULER JOB or not and check the destination, mail & logs simultaneously.
+6. If jobs not running properly reports not getting generated then go to windows TASK SCHEDULER JOB on DIGISIGNATURE server => open Task scheduler => on left select digital signature 
+	folder => right click run => check the logs for any error in logs folder(D:\TPPPL-DigitalSignature-9.2\DigitalSignature-Night\logs).
+
+Once the entire process is completed the DIGISINATURE JOB status will be "D".
+
+---= TISPL =---
+-----------------
+SOURCE PATH (BP02):- /u01/JDEdwards/E920/DigiSign
+DESTINATION PATH (DIGISIGNATURE server) DAY :- D:\TNDigitalSignature-9.2\DigitalSignature-Day\Archieve-Original\26-Feb-26
+DESTINATION PATH (DIGISIGNATURE server) NIGHT:- F:\TNDigiDESTINATION PATH (DIGISIGNATURE server): talSignature-9.2\DigitalSignature-Night\Archieve-DigiSign\26-Feb-26
+
+10.11.100.206 - Digital Signature - Day Jobs
+Teamviewer ID 816160753
+Pass Technova@123
+ 
+10.11.100.208 - Digital Signature - Night Jobs
+TeamViewer ID : 246660621
+Password: Technova@123
+ 
+---= TPPPL =---
+-----------------
+SOURCE PATH (BP01):- /u01/JDEdwards/E920/DigiSign
+DESTINATION PATH (DIGISIGNATURE server) DAY :- D:\TPPPL-DigitalSignature-9.2\DigitalSignature-Day\Archieve-DigiSign
+DESTINATION PATH (DIGISIGNATURE server) NIGHT:- D:\TPPPL-DigitalSignature-9.2\DigitalSignature-Night\Archieve-DigiSign
+ 
+TPPPL - Day Digital Signature - TPPPLDIGISIGNDYA 
+IP Address: 10.10.100.211
+TeamViewer ID - 518355858
+Pass Technova@123
+ 
+ 
+TPPPL - Night Digital Signature - TPPPLDIGISIGNNIGHT 
+IP Address: 10.10.100.251
+TeamViewer ID - 348379483
+Pass Technova@123
